@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Images - Forest Damage Assessment{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-center">Upload Images for {{ assessment.title }}</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('assessment.upload_images', assessment_id=assessment.id) }}" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.pre_image.label(class="form-label") }}
+                                {{ form.pre_image(class="form-control") }}
+                                {% for error in form.pre_image.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                                <div id="pre_image_preview" class="image-preview">
+                                    {% if assessment.pre_image_path %}
+                                    <img src="{{ url_for('static', filename='uploads/' + assessment.pre_image_path) }}" alt="Pre-typhoon image">
+                                    {% else %}
+                                    <span>No image selected</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.post_image.label(class="form-label") }}
+                                {{ form.post_image(class="form-control") }}
+                                {% for error in form.post_image.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                                <div id="post_image_preview" class="image-preview">
+                                    {% if assessment.post_image_path %}
+                                    <img src="{{ url_for('static', filename='uploads/' + assessment.post_image_path) }}" alt="Post-typhoon image">
+                                    {% else %}
+                                    <span>No image selected</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <p><strong>Note:</strong> Please upload both pre-typhoon and post-typhoon images for accurate damage assessment.</p>
+                        <p>Supported formats: JPG, JPEG, PNG, TIF, TIFF</p>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <a href="{{ url_for('assessment.index') }}" class="btn btn-secondary">Back to Assessments</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Additional script for image preview
+    document.addEventListener('DOMContentLoaded', function() {
+        // Image preview is handled by main.js
+    });
+</script>
+{% endblock %} 

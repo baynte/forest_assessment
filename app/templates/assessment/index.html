@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Assessments - Forest Damage Assessment{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Assessments</h1>
+    <a href="{{ url_for('assessment.new_assessment') }}" class="btn btn-success">
+        <i class="fas fa-plus-circle"></i> New Assessment
+    </a>
+</div>
+
+{% if assessments %}
+<div class="row">
+    {% for assessment in assessments %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">{{ assessment.title }}</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Location:</strong> {{ assessment.location }}</p>
+                <p><strong>Typhoon:</strong> {{ assessment.typhoon_name or 'Not specified' }}</p>
+                <p><strong>Date:</strong> {{ assessment.typhoon_date.strftime('%Y-%m-%d') if assessment.typhoon_date else 'Not specified' }}</p>
+                
+                {% if assessment.damage_percentage is not none %}
+                <div class="damage-stats">
+                    <p class="mb-1">Forest area before: {{ "%.2f"|format(assessment.forest_area_before) }}%</p>
+                    <p class="mb-1">Forest area after: {{ "%.2f"|format(assessment.forest_area_after) }}%</p>
+                    <p class="mb-0">Damage: <span class="damage-percentage">{{ "%.2f"|format(assessment.damage_percentage) }}%</span></p>
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    Processing not completed
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('assessment.view', assessment_id=assessment.id) }}" class="btn btn-primary">View Details</a>
+                    
+                    {% if not assessment.pre_image_path or not assessment.post_image_path %}
+                    <a href="{{ url_for('assessment.upload_images', assessment_id=assessment.id) }}" class="btn btn-info">Upload Images</a>
+                    {% elif assessment.damage_percentage is none %}
+                    <a href="{{ url_for('assessment.process', assessment_id=assessment.id) }}" class="btn btn-warning">Process Images</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">
+    <p>You don't have any assessments yet. Click the "New Assessment" button to create one.</p>
+</div>
+{% endif %}
+{% endblock %} 

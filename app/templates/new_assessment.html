@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Create New Assessment</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Assessment Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                            <div class="form-text">Give your assessment a descriptive name (e.g., "Typhoon Haiyan - Leyte Forest")</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" name="location" required>
+                            <div class="form-text">Specify the location of the forest area (e.g., "Northern Leyte Province")</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description (Optional)</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                            <div class="form-text">Provide additional details about this assessment</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Create Assessment</button>
+                            <a href="{{ url_for('assessments') }}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Assessment Process</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <div class="step-circle active">1</div>
+                            <p class="mt-2">Create Assessment</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="step-circle">2</div>
+                            <p class="mt-2">Upload Images</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="step-circle">3</div>
+                            <p class="mt-2">View Results</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #ccc;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        font-weight: bold;
+    }
+    .step-circle.active {
+        background-color: #0d6efd;
+    }
+</style>
+{% endblock %} 

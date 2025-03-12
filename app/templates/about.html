@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+
+{% block title %}About - Forest Damage Assessment{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>About Forest Damage Assessment</h1>
+            <hr>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <h3>Our Mission</h3>
+            <p>
+                The Post-Typhoon Forest Damage Assessment application is designed to help environmental scientists, 
+                forestry departments, and disaster response teams quickly assess and quantify forest damage after 
+                typhoon events. By leveraging advanced image processing and machine learning techniques, we provide 
+                accurate damage assessments that can inform recovery efforts and environmental planning.
+            </p>
+            
+            <h3 class="mt-4">How It Works</h3>
+            <p>
+                Our system uses a comparative analysis approach:
+            </p>
+            <ol>
+                <li><strong>Image Collection:</strong> Users upload pre-typhoon and post-typhoon satellite or aerial images of the same forest area.</li>
+                <li><strong>Image Processing:</strong> Our algorithms process these images to identify forest areas and detect changes.</li>
+                <li><strong>Semantic Segmentation:</strong> Using deep learning techniques, we classify each pixel into categories like vegetation, water, and land.</li>
+                <li><strong>Change Detection:</strong> By comparing the pre and post images, we identify areas where forest has been damaged.</li>
+                <li><strong>Damage Quantification:</strong> The system calculates the percentage of forest area that has been damaged.</li>
+                <li><strong>Visualization:</strong> Results are presented through intuitive visualizations that highlight damaged areas.</li>
+            </ol>
+            
+            <h3 class="mt-4">Technology</h3>
+            <p>
+                Our application is built using:
+            </p>
+            <ul>
+                <li><strong>Flask:</strong> A lightweight Python web framework</li>
+                <li><strong>OpenCV:</strong> For image processing and computer vision tasks</li>
+                <li><strong>TensorFlow:</strong> For deep learning and neural network models</li>
+                <li><strong>SQLite:</strong> For database management</li>
+                <li><strong>Bootstrap:</strong> For responsive and modern user interface</li>
+            </ul>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Contact Us</h5>
+                </div>
+                <div class="card-body">
+                    <p>
+                        Have questions or suggestions? We'd love to hear from you!
+                    </p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@forestassessment.org</li>
+                        <li><i class="fas fa-phone me-2"></i> +1 (555) 123-4567</li>
+                        <li><i class="fas fa-map-marker-alt me-2"></i> 123 Forest Way, Green City</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Our Team</h5>
+                </div>
+                <div class="card-body">
+                    <p>
+                        Our team consists of experts in:
+                    </p>
+                    <ul>
+                        <li>Environmental Science</li>
+                        <li>Computer Vision</li>
+                        <li>Machine Learning</li>
+                        <li>Forestry Management</li>
+                        <li>Disaster Response</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,90 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>My Assessments</h1>
+            <p class="lead">Manage your forest damage assessments</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('new_assessment') }}" class="btn btn-success">
+                <i class="fas fa-plus-circle me-2"></i>New Assessment
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">All Assessments</h5>
+                </div>
+                <div class="card-body">
+                    {% if assessments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Location</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Damage %</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for assessment in assessments %}
+                                <tr>
+                                    <td>{{ assessment.name }}</td>
+                                    <td>{{ assessment.location }}</td>
+                                    <td>{{ assessment.date.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        {% if assessment.processed %}
+                                        <span class="badge bg-success">Processed</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if assessment.damage_percentage is not none %}
+                                        <span class="badge bg-danger">{{ assessment.damage_percentage }}%</span>
+                                        {% else %}
+                                        <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            {% if assessment.processed %}
+                                            <a href="{{ url_for('assessment_view', assessment_id=assessment.id) }}" class="btn btn-sm btn-primary" title="View Results">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% else %}
+                                            {% if assessment.pre_image and assessment.post_image %}
+                                            <a href="{{ url_for('assessment_process', assessment_id=assessment.id) }}" class="btn btn-sm btn-info" title="Process Images">
+                                                <i class="fas fa-cogs"></i>
+                                            </a>
+                                            {% else %}
+                                            <a href="{{ url_for('assessment_upload', assessment_id=assessment.id) }}" class="btn btn-sm btn-warning" title="Upload Images">
+                                                <i class="fas fa-upload"></i>
+                                            </a>
+                                            {% endif %}
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <p class="mb-0">You don't have any assessments yet. <a href="{{ url_for('new_assessment') }}">Create your first assessment</a>.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

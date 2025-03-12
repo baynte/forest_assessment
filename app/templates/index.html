@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Forest Damage Assessment{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4">Post-Typhoon Forest Damage Assessment</h1>
+    <p class="lead">
+        Assess forest damage after typhoons using deep learning and image processing techniques.
+    </p>
+    <hr class="my-4">
+    <p>
+        This application uses Convolutional Neural Networks (CNN) to analyze pre and post-typhoon images,
+        perform semantic segmentation, and calculate forest damage percentages.
+    </p>
+    <div class="mt-4">
+        {% if current_user.is_authenticated %}
+        <a class="btn btn-primary btn-lg" href="{{ url_for('assessment.new_assessment') }}" role="button">Create New Assessment</a>
+        <a class="btn btn-secondary btn-lg" href="{{ url_for('assessment.index') }}" role="button">View Assessments</a>
+        {% else %}
+        <a class="btn btn-primary btn-lg" href="{{ url_for('auth.login') }}" role="button">Login</a>
+        <a class="btn btn-secondary btn-lg" href="{{ url_for('auth.register') }}" role="button">Register</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Semantic Segmentation</h5>
+                <p class="card-text">
+                    Our system uses U-Net architecture to perform semantic segmentation on forest images,
+                    classifying areas as forest, water, land, and more.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Change Detection</h5>
+                <p class="card-text">
+                    By comparing pre and post-typhoon images, our system can detect changes in forest coverage
+                    and calculate damage percentages.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Damage Assessment</h5>
+                <p class="card-text">
+                    Get accurate damage assessments with detailed reports, helping forest management
+                    authorities make informed decisions.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

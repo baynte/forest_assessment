@@ -1,0 +1,100 @@
+/* Custom styles for Forest Damage Assessment application */
+
+/* Jumbotron styling (Bootstrap 5 doesn't include jumbotron) */
+.jumbotron {
+    padding: 2rem 1rem;
+    margin-bottom: 2rem;
+    background-color: #e9ecef;
+    border-radius: 0.3rem;
+}
+
+/* Card styling */
+.card {
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+}
+
+/* Assessment details */
+.assessment-details {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0.3rem;
+    margin-bottom: 1.5rem;
+}
+
+.assessment-image {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.3rem;
+}
+
+.damage-stats {
+    background-color: #e9ecef;
+    padding: 1rem;
+    border-radius: 0.3rem;
+    margin-top: 1rem;
+}
+
+.damage-percentage {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #dc3545;
+}
+
+/* Footer styling */
+footer {
+    margin-top: 3rem;
+}
+
+/* Custom button styling */
+.btn-assessment {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-assessment:hover {
+    background-color: #218838;
+    color: white;
+}
+
+/* Image upload preview */
+.image-preview {
+    width: 100%;
+    height: 200px;
+    border: 1px solid #ced4da;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    overflow: hidden;
+}
+
+.image-preview img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* Dashboard stats */
+.stat-card {
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    color: #6c757d;
+} 

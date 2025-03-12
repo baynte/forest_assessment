@@ -1,0 +1,119 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Upload Images for {{ assessment.name }}</h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Upload pre-typhoon and post-typhoon images of the forest area.</p>
+                    
+                    <form method="POST" action="" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="pre_image" class="form-label">Pre-Typhoon Image</label>
+                                    <input class="form-control" type="file" id="pre_image" name="pre_image" accept="image/*" required>
+                                    <div class="form-text">Upload an image of the forest area before the typhoon</div>
+                                </div>
+                                
+                                {% if assessment.pre_image %}
+                                <div class="mb-3">
+                                    <div class="card">
+                                        <div class="card-header bg-success text-white">Pre-Typhoon Image Uploaded</div>
+                                        <div class="card-body">
+                                            <img src="{{ url_for('static', filename=assessment.pre_image.replace('app/static/', '')) }}" 
+                                                class="img-fluid" alt="Pre-Typhoon Image">
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="post_image" class="form-label">Post-Typhoon Image</label>
+                                    <input class="form-control" type="file" id="post_image" name="post_image" accept="image/*" required>
+                                    <div class="form-text">Upload an image of the same area after the typhoon</div>
+                                </div>
+                                
+                                {% if assessment.post_image %}
+                                <div class="mb-3">
+                                    <div class="card">
+                                        <div class="card-header bg-danger text-white">Post-Typhoon Image Uploaded</div>
+                                        <div class="card-body">
+                                            <img src="{{ url_for('static', filename=assessment.post_image.replace('app/static/', '')) }}" 
+                                                class="img-fluid" alt="Post-Typhoon Image">
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <h5><i class="fas fa-info-circle me-2"></i>Image Requirements</h5>
+                            <ul class="mb-0">
+                                <li>Both images should be of the same area and have similar perspectives</li>
+                                <li>Supported formats: JPG, PNG, TIFF</li>
+                                <li>For best results, use high-resolution aerial or satellite images</li>
+                                <li>Images should be properly aligned for accurate comparison</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Upload Images</button>
+                            <a href="{{ url_for('assessments') }}" class="btn btn-outline-secondary">Back to Assessments</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Assessment Process</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <div class="step-circle completed">1</div>
+                            <p class="mt-2">Create Assessment</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="step-circle active">2</div>
+                            <p class="mt-2">Upload Images</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="step-circle">3</div>
+                            <p class="mt-2">View Results</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #ccc;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        font-weight: bold;
+    }
+    .step-circle.active {
+        background-color: #0d6efd;
+    }
+    .step-circle.completed {
+        background-color: #198754;
+    }
+</style>
+{% endblock %} 

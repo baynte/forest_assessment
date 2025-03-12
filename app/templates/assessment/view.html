@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}{{ assessment.title }} - Forest Damage Assessment{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ assessment.title }}</h1>
+    <div>
+        <a href="{{ url_for('assessment.index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Assessments
+        </a>
+        {% if not assessment.pre_image_path or not assessment.post_image_path %}
+        <a href="{{ url_for('assessment.upload_images', assessment_id=assessment.id) }}" class="btn btn-primary">
+            <i class="fas fa-upload"></i> Upload Images
+        </a>
+        {% elif assessment.damage_percentage is none %}
+        <a href="{{ url_for('assessment.process', assessment_id=assessment.id) }}" class="btn btn-warning">
+            <i class="fas fa-cogs"></i> Process Images
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Assessment Details</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Location:</strong> {{ assessment.location }}</p>
+                <p><strong>Typhoon:</strong> {{ assessment.typhoon_name or 'Not specified' }}</p>
+                <p><strong>Date:</strong> {{ assessment.typhoon_date.strftime('%Y-%m-%d') if assessment.typhoon_date else 'Not specified' }}</p>
+                <p><strong>Created:</strong> {{ assessment.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                <p><strong>Last Updated:</strong> {{ assessment.updated_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                
+                {% if assessment.description %}
+                <hr>
+                <h6>Description:</h6>
+                <p>{{ assessment.description }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if assessment.damage_percentage is not none %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Damage Assessment</h5>
+            </div>
+            <div class="card-body">
+                <div class="damage-stats">
+                    <p><strong>Forest area before:</strong> {{ "%.2f"|format(assessment.forest_area_before) }}%</p>
+                    <p><strong>Forest area after:</strong> {{ "%.2f"|format(assessment.forest_area_after) }}%</p>
+                    <p><strong>Damage percentage:</strong> <span class="damage-percentage">{{ "%.2f"|format(assessment.damage_percentage) }}%</span></p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Images</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-center">Pre-Typhoon Image</h6>
+                        {% if assessment.pre_image_path %}
+                        <img src="{{ url_for('static', filename='uploads/' + assessment.pre_image_path) }}" alt="Pre-typhoon image" class="assessment-image">
+                        {% else %}
+                        <div class="alert alert-warning text-center">
+                            No pre-typhoon image uploaded
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-center">Post-Typhoon Image</h6>
+                        {% if assessment.post_image_path %}
+                        <img src="{{ url_for('static', filename='uploads/' + assessment.post_image_path) }}" alt="Post-typhoon image" class="assessment-image">
+                        {% else %}
+                        <div class="alert alert-warning text-center">
+                            No post-typhoon image uploaded
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if assessment.segmented_image_path %}
+                <hr>
+                <h6 class="text-center">Segmented Image</h6>
+                <img src="{{ url_for('static', filename='uploads/' + assessment.segmented_image_path) }}" alt="Segmented image" class="assessment-image">
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5>Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <a href="#" class="btn btn-info">
+                        <i class="fas fa-file-export"></i> Export Report
+                    </a>
+                    
+                    <form action="{{ url_for('assessment.delete', assessment_id=assessment.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this assessment? This action cannot be undone.');">
+                        <button type="submit" class="btn btn-danger delete-btn">
+                            <i class="fas fa-trash"></i> Delete Assessment
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,241 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Assessment Results: {{ assessment.name }}</h2>
+            <p class="text-muted">Location: {{ assessment.location }} | Date: {{ assessment.date.strftime('%Y-%m-%d') }}</p>
+            {% if assessment.description %}
+            <p>{{ assessment.description }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Damage Assessment</h5>
+                </div>
+                <div class="card-body">
+                    <div class="damage-meter">
+                        <div class="progress" style="height: 30px;">
+                            <div class="progress-bar bg-danger" role="progressbar" 
+                                style="width: {{ assessment.damage_percentage }}%;" 
+                                aria-valuenow="{{ assessment.damage_percentage }}" 
+                                aria-valuemin="0" aria-valuemax="100">
+                                {{ assessment.damage_percentage }}%
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <h6>Assessment Details:</h6>
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Forest Area Before
+                                <span class="badge bg-primary rounded-pill">{{ assessment.forest_area_before }}%</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Forest Area After
+                                <span class="badge bg-primary rounded-pill">{{ assessment.forest_area_after }}%</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Damage Percentage
+                                <span class="badge bg-danger rounded-pill">{{ assessment.damage_percentage }}%</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Processed Date
+                                <span class="badge bg-info rounded-pill">{{ assessment.processed_date.strftime('%Y-%m-%d') }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Visualization</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="visualizationTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="original-tab" data-bs-toggle="tab" data-bs-target="#original" 
+                                type="button" role="tab" aria-controls="original" aria-selected="true">
+                                Original Images
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="segmented-tab" data-bs-toggle="tab" data-bs-target="#segmented" 
+                                type="button" role="tab" aria-controls="segmented" aria-selected="false">
+                                Segmented Images
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="change-tab" data-bs-toggle="tab" data-bs-target="#change" 
+                                type="button" role="tab" aria-controls="change" aria-selected="false">
+                                Change Detection
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content p-3" id="visualizationTabsContent">
+                        <div class="tab-pane fade show active" id="original" role="tabpanel" aria-labelledby="original-tab">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">Pre-Typhoon</div>
+                                        <div class="card-body">
+                                            {% if assessment.pre_image %}
+                                            <!-- Try multiple approaches to display the image -->
+                                            <img src="{{ url_for('static', filename=assessment.pre_image.replace('static/', '')) }}" 
+                                                class="img-fluid" alt="Pre-Typhoon Image (Method 1)">
+                                            
+                                            <hr>
+                                            <img src="/{{ assessment.pre_image }}" 
+                                                class="img-fluid" alt="Pre-Typhoon Image (Method 2)">
+                                                
+                                            <hr>
+                                            <img src="{{ url_for('uploaded_file', filename=assessment.pre_image.split('/')[-1]) }}" 
+                                                class="img-fluid" alt="Pre-Typhoon Image (Method 3)">
+                                                
+                                            <div class="mt-2 text-muted small">Path: {{ assessment.pre_image }}</div>
+                                            {% else %}
+                                            <div class="alert alert-warning">Pre-typhoon image not available</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">Post-Typhoon</div>
+                                        <div class="card-body">
+                                            {% if assessment.post_image %}
+                                            <!-- Try multiple approaches to display the image -->
+                                            <img src="{{ url_for('static', filename=assessment.post_image.replace('static/', '')) }}" 
+                                                class="img-fluid" alt="Post-Typhoon Image (Method 1)">
+                                                
+                                            <hr>
+                                            <img src="/{{ assessment.post_image }}" 
+                                                class="img-fluid" alt="Post-Typhoon Image (Method 2)">
+                                                
+                                            <hr>
+                                            <img src="{{ url_for('uploaded_file', filename=assessment.post_image.split('/')[-1]) }}" 
+                                                class="img-fluid" alt="Post-Typhoon Image (Method 3)">
+                                                
+                                            <div class="mt-2 text-muted small">Path: {{ assessment.post_image }}</div>
+                                            {% else %}
+                                            <div class="alert alert-warning">Post-typhoon image not available</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-pane fade" id="segmented" role="tabpanel" aria-labelledby="segmented-tab">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">Pre-Typhoon Segmentation</div>
+                                        <div class="card-body">
+                                            {% if assessment.pre_vis_path %}
+                                            <img src="{{ url_for('static', filename=assessment.pre_vis_path.replace('static/', '')) }}" 
+                                                class="img-fluid" alt="Pre-Typhoon Segmentation">
+                                            {% else %}
+                                            <div class="alert alert-warning">Pre-typhoon segmentation not available</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">Post-Typhoon Segmentation</div>
+                                        <div class="card-body">
+                                            {% if assessment.post_vis_path %}
+                                            <img src="{{ url_for('static', filename=assessment.post_vis_path.replace('static/', '')) }}" 
+                                                class="img-fluid" alt="Post-Typhoon Segmentation">
+                                            {% else %}
+                                            <div class="alert alert-warning">Post-typhoon segmentation not available</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-header">Segmentation Legend</div>
+                                        <div class="card-body">
+                                            <div class="d-flex flex-wrap">
+                                                <div class="me-3 mb-2">
+                                                    <span class="badge" style="background-color: #000000; width: 20px; height: 20px; display: inline-block;"></span>
+                                                    <span class="ms-1">Unlabeled</span>
+                                                </div>
+                                                <div class="me-3 mb-2">
+                                                    <span class="badge" style="background-color: #A52A2A; width: 20px; height: 20px; display: inline-block;"></span>
+                                                    <span class="ms-1">Land/Soil</span>
+                                                </div>
+                                                <div class="me-3 mb-2">
+                                                    <span class="badge" style="background-color: #0000FF; width: 20px; height: 20px; display: inline-block;"></span>
+                                                    <span class="ms-1">Water</span>
+                                                </div>
+                                                <div class="me-3 mb-2">
+                                                    <span class="badge" style="background-color: #00FF00; width: 20px; height: 20px; display: inline-block;"></span>
+                                                    <span class="ms-1">Vegetation</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-pane fade" id="change" role="tabpanel" aria-labelledby="change-tab">
+                            <div class="card">
+                                <div class="card-header">Change Detection</div>
+                                <div class="card-body">
+                                    {% if assessment.change_vis_path %}
+                                    <img src="{{ url_for('static', filename=assessment.change_vis_path.replace('static/', '')) }}" 
+                                        class="img-fluid" alt="Change Detection">
+                                    {% else %}
+                                    <div class="alert alert-warning">Change detection visualization not available</div>
+                                    {% endif %}
+                                    
+                                    <div class="mt-3">
+                                        <div class="card">
+                                            <div class="card-header">Change Detection Legend</div>
+                                            <div class="card-body">
+                                                <div class="d-flex flex-wrap">
+                                                    <div class="me-3 mb-2">
+                                                        <span class="badge" style="background-color: #00FF00; width: 20px; height: 20px; display: inline-block;"></span>
+                                                        <span class="ms-1">Original Forest</span>
+                                                    </div>
+                                                    <div class="me-3 mb-2">
+                                                        <span class="badge" style="background-color: #FF0000; width: 20px; height: 20px; display: inline-block;"></span>
+                                                        <span class="ms-1">Damaged Areas</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('assessments') }}" class="btn btn-secondary">Back to Assessments</a>
+                <a href="#" class="btn btn-primary">Export Report</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

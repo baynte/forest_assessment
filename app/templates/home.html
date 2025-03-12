@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="jumbotron">
+                <h1 class="display-4">Post-Typhoon Forest Damage Assessment</h1>
+                <p class="lead">A powerful tool for assessing forest damage after typhoons using satellite imagery and deep learning.</p>
+                <hr class="my-4">
+                <p>Upload pre and post-typhoon images to analyze forest damage, generate reports, and visualize the impact.</p>
+                {% if current_user.is_authenticated %}
+                    <a class="btn btn-primary btn-lg" href="{{ url_for('dashboard') }}" role="button">Go to Dashboard</a>
+                {% else %}
+                    <a class="btn btn-primary btn-lg" href="{{ url_for('login') }}" role="button">Get Started</a>
+                    <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('about') }}" role="button">Learn More</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Key Features</h5>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <i class="fas fa-image me-2"></i> Image Processing
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-chart-pie me-2"></i> Damage Analysis
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-map-marked-alt me-2"></i> Geospatial Visualization
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-file-alt me-2"></i> Report Generation
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-history me-2"></i> Historical Comparison
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Upload Images</h5>
+                    <p class="card-text">Upload pre and post-typhoon satellite or aerial images to begin the assessment process.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Process & Analyze</h5>
+                    <p class="card-text">Our advanced algorithms process the images to detect and quantify forest damage.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">View Results</h5>
+                    <p class="card-text">Get detailed reports with visualizations showing the extent and severity of damage.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
