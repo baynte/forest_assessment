@@ -161,9 +161,9 @@ def assessment_upload(assessment_id):
                     flash('Failed to save post-typhoon image. Please try again.', 'danger')
                     return redirect(request.url)
                 
-                # Update assessment with image paths
-                assessment.pre_image = os.path.join('static/uploads', pre_filename)
-                assessment.post_image = os.path.join('static/uploads', post_filename)
+                # Update assessment with image paths (forward slashes for URLs)
+                assessment.pre_image = 'uploads/' + pre_filename
+                assessment.post_image = 'uploads/' + post_filename
                 db.session.commit()
                 
                 app.logger.info(f"Images saved successfully: {pre_path} and {post_path}")
@@ -194,9 +194,9 @@ def assessment_process(assessment_id):
         flash('Please upload both pre and post typhoon images first', 'warning')
         return redirect(url_for('assessment_upload', assessment_id=assessment_id))
     
-    # Process images - use the correct path
-    pre_image_path = os.path.join(app.root_path, assessment.pre_image)
-    post_image_path = os.path.join(app.root_path, assessment.post_image)
+    # Process images - use the correct path (normalize for Windows)
+    pre_image_path = os.path.join(app.root_path, 'static', assessment.pre_image.replace('\\', '/'))
+    post_image_path = os.path.join(app.root_path, 'static', assessment.post_image.replace('\\', '/'))
     
     app.logger.info(f"Processing images at: {pre_image_path} and {post_image_path}")
     
@@ -262,6 +262,7 @@ def assessment_view(assessment_id):
 
 @app.route('/uploads/<path:filename>')
 def uploaded_file(filename):
-    """Serve uploaded files directly for debugging purposes"""
-    app.logger.info(f"Serving uploaded file: {filename}")
+    """Serve uploaded files (filename only; path normalized for URLs)."""
+    # Use forward slashes and take basename so Windows paths don't break URLs
+    filename = filename.replace('\\', '/').split('/')[-1]
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename) 

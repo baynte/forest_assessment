@@ -1,17 +1,29 @@
+"""
+Image processing for post-typhoon forest damage assessment.
+Follows the methodology from: Post-Typhoon Forest Damage Assessment using
+Deep-Learning and Unmanned Aerial Vehicle Images (Milagan & Enriquez, 2021).
+Six-class semantic segmentation with integer encoding and change detection by pixel count.
+"""
 import cv2
 import numpy as np
 import os
-from PIL import Image
-import tensorflow as tf
 import time
 
-# Constants for RGB to HEX conversion (from manuscript)
-BUILDING = '#3C1098'
-LAND = '#8429F6'
-ROAD = '#6EC1E4'
-VEGETATION = 'FEDD3A'
-WATER = 'E2A929'
-UNLABELED = '#9B9B9B'
+# Six-class labels (manuscript order: Building, Land, Road, Vegetation, Water, Unlabeled)
+CLASS_BUILDING = 0
+CLASS_LAND = 1
+CLASS_ROAD = 2
+CLASS_VEGETATION = 3
+CLASS_WATER = 4
+CLASS_UNLABELED = 5
+
+# RGB mask colors from manuscript (HEX); used for integer-encoded labels and visualization
+BUILDING = "#3C1098"
+LAND = "#8429F6"
+ROAD = "#6EC1E4"
+VEGETATION = "#FEDD3A"
+WATER = "#E2A929"
+UNLABELED = "#9B9B9B"
 
 def rgb_to_hex(rgb):
     """Convert RGB tuple to HEX string"""
@@ -56,55 +68,48 @@ def process_images(pre_image_path, post_image_path):
     segmented_pre = perform_segmentation(pre_image)
     segmented_post = perform_segmentation(post_image)
     
-    # Enhance change detection by analyzing color differences
-    # This helps identify areas where vegetation has been damaged
+    # Change detection: vegetation in pre that is no longer vegetation in post
+    veg_pre = (segmented_pre == CLASS_VEGETATION)
+    veg_post = (segmented_post == CLASS_VEGETATION)
+    # Damaged = was vegetation, now not (by segmentation)
+    damaged_by_seg = veg_pre & ~veg_post
+
+    # Refine with HSV: in pre-vegetation areas, large color shift suggests damage
     pre_hsv = cv2.cvtColor(pre_image, cv2.COLOR_BGR2HSV)
     post_hsv = cv2.cvtColor(post_image, cv2.COLOR_BGR2HSV)
-    
-    # Calculate color difference mask focusing on vegetation changes
-    diff_mask = np.zeros_like(segmented_pre)
-    
-    # Areas that were vegetation in pre-image but changed significantly in post-image
-    veg_mask_pre = (segmented_pre == 3)
-    
-    # Calculate color difference in HSV space
-    h_diff = np.abs(pre_hsv[:,:,0].astype(np.int32) - post_hsv[:,:,0].astype(np.int32))
-    s_diff = np.abs(pre_hsv[:,:,1].astype(np.int32) - post_hsv[:,:,1].astype(np.int32))
-    v_diff = np.abs(pre_hsv[:,:,2].astype(np.int32) - post_hsv[:,:,2].astype(np.int32))
-    
-    # Significant changes in hue or saturation in vegetation areas indicate damage
-    significant_change = ((h_diff > 15) | (s_diff > 50) | (v_diff > 50)) & veg_mask_pre
-    
-    # Apply this knowledge to refine the segmentation
+    h_diff = np.abs(pre_hsv[:, :, 0].astype(np.int32) - post_hsv[:, :, 0].astype(np.int32))
+    s_diff = np.abs(pre_hsv[:, :, 1].astype(np.int32) - post_hsv[:, :, 1].astype(np.int32))
+    v_diff = np.abs(pre_hsv[:, :, 2].astype(np.int32) - post_hsv[:, :, 2].astype(np.int32))
+    # Hue wrap-around: 179 and 0 are close
+    h_diff = np.minimum(h_diff, 180 - h_diff)
+    significant_hsv_change = (h_diff > 12) | (s_diff > 40) | (v_diff > 40)
+    damaged_by_hsv = veg_pre & significant_hsv_change
+
+    # Combined damage mask: lost vegetation by segmentation or strong HSV change
+    significant_change = damaged_by_seg | damaged_by_hsv
     refined_post = segmented_post.copy()
-    refined_post[significant_change] = 1  # Mark as damaged/non-vegetation
-    
-    # Calculate damage using the refined segmentation
-    forest_area_before, forest_area_after, damage_percentage = calculate_damage(segmented_pre, refined_post)
-    
-    # Create visualization of segmented images
+    refined_post[significant_change] = CLASS_LAND  # Damaged vegetation -> land (manuscript change detection)
+
+    # Damage and areas using refined comparison
+    forest_area_before, forest_area_after, damage_percentage = calculate_damage(
+        segmented_pre, refined_post
+    )
+
+    # Visualizations
     pre_vis = visualize_segmentation(segmented_pre)
     post_vis = visualize_segmentation(refined_post)
-    
-    # Create change visualization
     change_vis = np.zeros_like(pre_image_rgb)
-    change_vis[segmented_pre == 3] = [0, 255, 0]  # Green for original forest
-    change_vis[significant_change] = [255, 0, 0]   # Red for damaged areas
+    change_vis[veg_pre] = [0, 255, 0]           # Green: was vegetation
+    change_vis[significant_change] = [255, 0, 0]  # Red: damaged
     
-    # Save visualizations
+    # Save visualizations under static/uploads
     timestamp = int(time.time())
     pre_vis_path = f"static/uploads/pre_vis_{timestamp}.jpg"
     post_vis_path = f"static/uploads/post_vis_{timestamp}.jpg"
     change_vis_path = f"static/uploads/change_vis_{timestamp}.jpg"
-    
-    # Get the base directory from the input image path
-    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(pre_image_path)))
-    
-    # Ensure the uploads directory exists
+    base_dir = os.path.normpath(os.path.join(os.path.dirname(pre_image_path), "..", ".."))
     upload_dir = os.path.join(base_dir, "static", "uploads")
     os.makedirs(upload_dir, exist_ok=True)
-    
-    # Full paths for saving
     full_pre_vis_path = os.path.join(base_dir, pre_vis_path)
     full_post_vis_path = os.path.join(base_dir, post_vis_path)
     full_change_vis_path = os.path.join(base_dir, change_vis_path)
@@ -125,140 +130,118 @@ def process_images(pre_image_path, post_image_path):
     
     return result_data
 
+def _normalize_uint8(arr):
+    """Scale array to 0-255 for consistent thresholds across images."""
+    if arr.size == 0:
+        return arr
+    min_val, max_val = arr.min(), arr.max()
+    if max_val <= min_val:
+        return np.zeros_like(arr, dtype=np.uint8)
+    return ((arr.astype(np.float32) - min_val) / (max_val - min_val) * 255).astype(np.uint8)
+
+
 def perform_segmentation(image):
     """
-    Perform semantic segmentation on an image
-    
-    Args:
-        image: Input image (BGR format)
-        
-    Returns:
-        segmented_image: Segmented image with class labels
+    Six-class semantic segmentation (manuscript: Building, Land, Road, Vegetation, Water, Unlabeled).
+    Uses color indices and rules compatible with the manuscript's integer-encoded masks.
     """
-    # Convert BGR to RGB
-    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    
-    # Get image dimensions
     height, width = image.shape[:2]
-    
-    # Initialize segmentation mask
-    segmented = np.zeros((height, width), dtype=np.uint8)
-    
-    # Simple vegetation detection based on green channel intensity
-    # This is a simplified approach - a real implementation would use a trained U-Net model
-    b, g, r = cv2.split(image)
-    
-    # Vegetation: areas where green channel is dominant
-    vegetation_mask = (g > r + 20) & (g > b + 20)
-    
-    # Water: areas where blue channel is dominant
-    water_mask = (b > r + 20) & (b > g + 20)
-    
-    # Land/soil: areas where red channel is dominant or all channels are similar
-    land_mask = (r > g + 20) & (r > b + 20)
-    
-    # Assign class labels
-    segmented[vegetation_mask] = 3  # Vegetation
-    segmented[water_mask] = 2       # Water
-    segmented[land_mask] = 1        # Land/soil
-    # Unclassified areas remain 0 (unlabeled)
-    
+    b, g, r = (image[:, :, i].astype(np.float32) for i in (0, 1, 2))
+    intensity = (r + g + b) / 3
+
+    # Water (class 4): blue-dominant, relatively dark
+    water_mask = (b > r) & (b > g) & (intensity < 180)
+
+    # Vegetation (class 3): green-dominant (G > R and G > B) + Excess Green index
+    exg = 2.0 * g - r - b
+    green_dominant = (g > r) & (g > b)
+    exg_uint = _normalize_uint8(exg)
+    if np.any(green_dominant):
+        pct = np.percentile(exg_uint[green_dominant], 25)
+        veg_thresh = max(35, float(pct)) if np.isfinite(pct) else 70
+    else:
+        veg_thresh = 70
+    vegetation_mask = (exg_uint >= veg_thresh) & green_dominant
+
+    # Road (class 2): light grey, similar R≈G≈B; exclude green so vegetation isn't stolen
+    neutral = np.abs(r.astype(np.int32) - g.astype(np.int32)) < 30
+    neutral &= np.abs(g.astype(np.int32) - b.astype(np.int32)) < 30
+    road_mask = neutral & (intensity >= 80) & (intensity <= 220) & ~green_dominant
+
+    # Building (class 0): dark, non-green (avoid shadowed forest being labeled building)
+    building_mask = (intensity < 100) & ~water_mask & ~green_dominant
+    building_mask |= (intensity < 70) & ~water_mask & ~green_dominant
+
+    # Land (class 1): red-dominant, brownish; exclude green so forest stays vegetation
+    land_mask = (r > g + 15) & (r > b + 15) & ~neutral & ~green_dominant
+
+    # Assign: vegetation and water take precedence so green/dark-green isn't overwritten by land/building
+    segmented = np.full((height, width), CLASS_UNLABELED, dtype=np.uint8)
+    segmented[land_mask] = CLASS_LAND
+    segmented[building_mask & ~land_mask] = CLASS_BUILDING
+    segmented[road_mask & ~building_mask & ~land_mask] = CLASS_ROAD
+    segmented[vegetation_mask & ~water_mask & ~road_mask] = CLASS_VEGETATION
+    segmented[water_mask] = CLASS_WATER
+
     return segmented
 
 def calculate_damage(segmented_pre, segmented_post):
     """
-    Calculate forest damage percentage based on segmented images
-    
-    Args:
-        segmented_pre: Segmented pre-typhoon image
-        segmented_post: Segmented post-typhoon image
-        
-    Returns:
-        forest_area_before: Percentage of forest area before typhoon
-        forest_area_after: Percentage of forest area after typhoon
-        damage_percentage: Percentage of forest damage
+    Calculate forest damage as the fraction of pre-typhoon vegetation
+    that is no longer classified as vegetation in the post image.
     """
-    # Calculate forest area before (class 3 - Vegetation)
-    forest_pixels_before = np.sum(segmented_pre == 3)
     total_pixels = segmented_pre.size
-    forest_area_before = (forest_pixels_before / total_pixels) * 100
-    
-    # Calculate forest area after
-    forest_pixels_after = np.sum(segmented_post == 3)
-    forest_area_after = (forest_pixels_after / total_pixels) * 100
-    
-    # Calculate damage percentage
+    forest_pixels_before = np.sum(segmented_pre == CLASS_VEGETATION)
+    forest_pixels_after = np.sum(segmented_post == CLASS_VEGETATION)
+    # Pixels that were vegetation in both (intact)
+    vegetation_lost = forest_pixels_before - np.sum(
+        (segmented_pre == CLASS_VEGETATION) & (segmented_post == CLASS_VEGETATION)
+    )
+
+    forest_area_before = (forest_pixels_before / total_pixels) * 100 if total_pixels else 0
+    forest_area_after = (forest_pixels_after / total_pixels) * 100 if total_pixels else 0
+
+    # Damage = % of pre-vegetation area that was lost (0–100)
     if forest_pixels_before > 0:
-        damage_percentage = ((forest_pixels_before - forest_pixels_after) / forest_pixels_before) * 100
-        
-        # Apply a scaling factor to account for the simplified segmentation approach
-        # This helps to make the damage assessment more realistic
-        # In a real implementation with a properly trained model, this wouldn't be necessary
-        if damage_percentage > 0:
-            # Scale up the damage percentage to better reflect severe damage
-            # This is a temporary solution until a proper model is implemented
-            damage_factor = 1.5  # Adjust this factor based on testing with your images
-            damage_percentage = min(damage_percentage * damage_factor, 100.0)
+        damage_percentage = (vegetation_lost / forest_pixels_before) * 100
     else:
-        damage_percentage = 0
-    
+        damage_percentage = 0.0
+
+    damage_percentage = max(0.0, min(100.0, damage_percentage))
     return forest_area_before, forest_area_after, damage_percentage
 
 def save_segmented_image(segmented_image, output_path):
     """
-    Save segmented image with color-coded classes
-    
-    Args:
-        segmented_image: Segmented image with class labels
-        output_path: Path to save the colored segmentation
+    Save segmented image with manuscript HEX colors (six-class).
     """
-    # Create a colored visualization of the segmentation
-    # Map class indices to colors
     color_map = {
-        0: hex_to_rgb(BUILDING),    # Building
-        1: hex_to_rgb(LAND),        # Land
-        2: hex_to_rgb(ROAD),        # Road
-        3: hex_to_rgb(VEGETATION),  # Vegetation
-        4: hex_to_rgb(WATER),       # Water
-        5: hex_to_rgb(UNLABELED)    # Unlabeled
+        CLASS_BUILDING: hex_to_rgb(BUILDING),
+        CLASS_LAND: hex_to_rgb(LAND),
+        CLASS_ROAD: hex_to_rgb(ROAD),
+        CLASS_VEGETATION: hex_to_rgb(VEGETATION),
+        CLASS_WATER: hex_to_rgb(WATER),
+        CLASS_UNLABELED: hex_to_rgb(UNLABELED),
     }
-    
-    # Create RGB image
     height, width = segmented_image.shape
     colored_segmentation = np.zeros((height, width, 3), dtype=np.uint8)
-    
-    # Apply colors based on class indices
     for class_idx, color in color_map.items():
         colored_segmentation[segmented_image == class_idx] = color
-    
-    # Save the image
     cv2.imwrite(output_path, cv2.cvtColor(colored_segmentation, cv2.COLOR_RGB2BGR))
 
 def visualize_segmentation(segmented):
     """
-    Create a colored visualization of a segmented image
-    
-    Args:
-        segmented: Segmented image with class labels
-        
-    Returns:
-        visualization: RGB visualization of segmentation
+    RGB visualization of six-class segmentation using manuscript HEX colors.
     """
-    # Define colors for each class (RGB format)
-    # 0: Unlabeled (black), 1: Land/soil (brown), 2: Water (blue), 3: Vegetation (green)
-    colors = [
-        [0, 0, 0],       # Unlabeled - Black
-        [165, 42, 42],   # Land/soil - Brown
-        [0, 0, 255],     # Water - Blue
-        [0, 255, 0],     # Vegetation - Green
-    ]
-    
-    # Create RGB visualization
+    color_map = {
+        CLASS_BUILDING: hex_to_rgb(BUILDING),
+        CLASS_LAND: hex_to_rgb(LAND),
+        CLASS_ROAD: hex_to_rgb(ROAD),
+        CLASS_VEGETATION: hex_to_rgb(VEGETATION),
+        CLASS_WATER: hex_to_rgb(WATER),
+        CLASS_UNLABELED: hex_to_rgb(UNLABELED),
+    }
     height, width = segmented.shape
     visualization = np.zeros((height, width, 3), dtype=np.uint8)
-    
-    # Apply colors based on class labels
-    for class_id, color in enumerate(colors):
-        visualization[segmented == class_id] = color
-    
+    for class_idx, color in color_map.items():
+        visualization[segmented == class_idx] = color
     return visualization 
