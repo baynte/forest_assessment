@@ -115,7 +115,6 @@ forest_assessment/
 │   ├── utils/           # Utilities (e.g. image_processing.py)
 │   └── __init__.py      # App factory and config
 ├── run.py               # Application entry point
-├── read_manuscript.py   # Extract text from manuscript.docx (requires python-docx)
 ├── requirements.txt     # Python dependencies
 ├── recreate_db.py      # Optional DB recreation script
 ├── check_db.py          # Optional DB check script
