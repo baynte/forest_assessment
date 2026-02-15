@@ -77,7 +77,6 @@ The application follows the methodology described in the thesis *Post-Typhoon Fo
 - **Change detection:** Pre- and post-typhoon masks are converted to integer labels; per-class pixel counts are computed with `np.sum(label == class_id)`. Forest/vegetation and other class coverages are reported as percentages of total pixels. Damage is derived from the difference in these percentages between pre and post (focus on forested/vegetation area).
 - **Plotting and visualization:** The manuscript uses matplotlib (e.g. `pyplot`) to display segmented predictions and ground-truth masks (side-by-side pre/post), with legends for Forest, Vegetation, Water, Unlabeled (and Building, Road where applicable). Results include area percentages per class and damage assessment percentage.
 
-The script `read_manuscript.py` (using `python-docx`) can be used to extract the full text from `manuscript.docx` if present in the project root.
 
 ### Image processing and damage assessment pipeline
 
