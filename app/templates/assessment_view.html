@@ -88,19 +88,8 @@
                                         <div class="card-header">Pre-Typhoon</div>
                                         <div class="card-body">
                                             {% if assessment.pre_image %}
-                                            <!-- Try multiple approaches to display the image -->
-                                            <img src="{{ url_for('static', filename=assessment.pre_image.replace('static/', '')) }}" 
-                                                class="img-fluid" alt="Pre-Typhoon Image (Method 1)">
-                                            
-                                            <hr>
-                                            <img src="/{{ assessment.pre_image }}" 
-                                                class="img-fluid" alt="Pre-Typhoon Image (Method 2)">
-                                                
-                                            <hr>
-                                            <img src="{{ url_for('uploaded_file', filename=assessment.pre_image.split('/')[-1]) }}" 
-                                                class="img-fluid" alt="Pre-Typhoon Image (Method 3)">
-                                                
-                                            <div class="mt-2 text-muted small">Path: {{ assessment.pre_image }}</div>
+                                            <img src="{{ url_for('static', filename=(assessment.pre_image or '').replace('\\', '/').replace('static/', '').replace('app/static/', '').lstrip('/')) }}" 
+                                                class="img-fluid" alt="Pre-Typhoon Image">
                                             {% else %}
                                             <div class="alert alert-warning">Pre-typhoon image not available</div>
                                             {% endif %}
@@ -112,19 +101,8 @@
                                         <div class="card-header">Post-Typhoon</div>
                                         <div class="card-body">
                                             {% if assessment.post_image %}
-                                            <!-- Try multiple approaches to display the image -->
-                                            <img src="{{ url_for('static', filename=assessment.post_image.replace('static/', '')) }}" 
-                                                class="img-fluid" alt="Post-Typhoon Image (Method 1)">
-                                                
-                                            <hr>
-                                            <img src="/{{ assessment.post_image }}" 
-                                                class="img-fluid" alt="Post-Typhoon Image (Method 2)">
-                                                
-                                            <hr>
-                                            <img src="{{ url_for('uploaded_file', filename=assessment.post_image.split('/')[-1]) }}" 
-                                                class="img-fluid" alt="Post-Typhoon Image (Method 3)">
-                                                
-                                            <div class="mt-2 text-muted small">Path: {{ assessment.post_image }}</div>
+                                            <img src="{{ url_for('static', filename=(assessment.post_image or '').replace('\\', '/').replace('static/', '').replace('app/static/', '').lstrip('/')) }}" 
+                                                class="img-fluid" alt="Post-Typhoon Image">
                                             {% else %}
                                             <div class="alert alert-warning">Post-typhoon image not available</div>
                                             {% endif %}
@@ -141,7 +119,7 @@
                                         <div class="card-header">Pre-Typhoon Segmentation</div>
                                         <div class="card-body">
                                             {% if assessment.pre_vis_path %}
-                                            <img src="{{ url_for('static', filename=assessment.pre_vis_path.replace('static/', '')) }}" 
+                                            <img src="{{ url_for('static', filename=(assessment.pre_vis_path or '').replace('\\', '/').replace('static/', '').lstrip('/')) }}" 
                                                 class="img-fluid" alt="Pre-Typhoon Segmentation">
                                             {% else %}
                                             <div class="alert alert-warning">Pre-typhoon segmentation not available</div>
@@ -154,7 +132,7 @@
                                         <div class="card-header">Post-Typhoon Segmentation</div>
                                         <div class="card-body">
                                             {% if assessment.post_vis_path %}
-                                            <img src="{{ url_for('static', filename=assessment.post_vis_path.replace('static/', '')) }}" 
+                                            <img src="{{ url_for('static', filename=(assessment.post_vis_path or '').replace('\\', '/').replace('static/', '').lstrip('/')) }}" 
                                                 class="img-fluid" alt="Post-Typhoon Segmentation">
                                             {% else %}
                                             <div class="alert alert-warning">Post-typhoon segmentation not available</div>
@@ -197,7 +175,7 @@
                                 <div class="card-header">Change Detection</div>
                                 <div class="card-body">
                                     {% if assessment.change_vis_path %}
-                                    <img src="{{ url_for('static', filename=assessment.change_vis_path.replace('static/', '')) }}" 
+                                    <img src="{{ url_for('static', filename=(assessment.change_vis_path or '').replace('\\', '/').replace('static/', '').lstrip('/')) }}" 
                                         class="img-fluid" alt="Change Detection">
                                     {% else %}
                                     <div class="alert alert-warning">Change detection visualization not available</div>
