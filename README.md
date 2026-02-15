@@ -69,17 +69,25 @@ This application analyzes pre- and post-typhoon images to perform semantic segme
 - **View assessment:** The detail page shows metadata, pre/post images, the segmented image, damage statistics (forest area before/after, damage %), and actions such as export report (placeholder) and delete assessment.
 - **Delete assessment:** The assessment record and its files (pre, post, segmented) are removed from disk and the database. Only the owner can delete.
 
+### Research basis (manuscript methods)
+
+The application follows the methodology described in the thesis *Post-Typhoon Forest Damage Assessment using Deep-Learning and Unmanned Aerial Vehicle Images* (Milagan & Enriquez, Caraga State University, 2021). The manuscript specifies:
+
+- **Semantic segmentation:** Six classes—Building, Land, Road, Vegetation, Water, Unlabeled—with pixel-wise labels. Masks use fixed RGB values converted to HEX and then integer-encoded (e.g. Building `#3C1098`, Land `#8429F6`, Road `#6EC1E4`, Vegetation `#FEDD3A`, Water `#E2A929`, Unlabeled `#9B9B9B`). The thesis uses a U-Net (Ronneberger) with ResNet34 backbone, 256×256 patches, MinMaxScaler normalization, and dice + focal loss for training.
+- **Change detection:** Pre- and post-typhoon masks are converted to integer labels; per-class pixel counts are computed with `np.sum(label == class_id)`. Forest/vegetation and other class coverages are reported as percentages of total pixels. Damage is derived from the difference in these percentages between pre and post (focus on forested/vegetation area).
+- **Plotting and visualization:** The manuscript uses matplotlib (e.g. `pyplot`) to display segmented predictions and ground-truth masks (side-by-side pre/post), with legends for Forest, Vegetation, Water, Unlabeled (and Building, Road where applicable). Results include area percentages per class and damage assessment percentage.
+
+The script `read_manuscript.py` (using `python-docx`) can be used to extract the full text from `manuscript.docx` if present in the project root.
+
 ### Image processing and damage assessment pipeline
 
-The pipeline in `app/utils/image_processing.py` works as follows:
+The pipeline in `app/utils/image_processing.py` implements a subset of the above:
 
 - **Loading and alignment:** Pre- and post-typhoon images are loaded with OpenCV. If sizes differ, the post image is resized to match the pre image. Images are converted to RGB/HSV as needed.
-- **Semantic segmentation (`perform_segmentation`):** Rule-based pixel classification (no trained model in the current code): vegetation (green-dominant), water (blue-dominant), land (red-dominant). Outputs integer class labels (0 unlabeled, 1 land, 2 water, 3 vegetation).
-- **Change detection:** Inside the full pipeline, HSV differences between pre and post are computed. In areas that were vegetation in the pre-image, large hue/saturation/value changes mark potential damage and are used to refine the segmentation.
-- **Damage calculation (`calculate_damage`):** Forest is defined as the vegetation class (e.g. class 3). Forest area before and after are expressed as percentages of total pixels. Damage percentage is `(forest_before - forest_after) / forest_before * 100`, with an optional scaling factor and a cap at 100%.
-- **Visualization and output:** Segmentation is color-coded (e.g. vegetation green, land brown, water blue). Pre/post/change visualizations can be saved under `static/uploads`. One segmented image path is stored per assessment (`segmented_image_path`).
-
-The design is inspired by U-Net/CNN-based approaches; the current implementation uses rule-based segmentation. A future upgrade could integrate a trained model.
+- **Semantic segmentation (`perform_segmentation`):** Pixel classification into the same conceptual classes (unlabeled, land, water, vegetation), using the manuscript’s HEX/RGB color convention where applicable. The current code uses rule-based indices (Excess Green, channel dominance) rather than a trained U-Net; output is integer class labels compatible with the manuscript’s encoding.
+- **Change detection:** Pre- and post-segmentation masks are compared. Vegetation in the pre-image that is no longer vegetation in the post (by class or by strong HSV change) is treated as damaged. This aligns with the manuscript’s change detection by pixel count and class difference.
+- **Damage calculation (`calculate_damage`):** Damage = (pixels that were vegetation in pre but not in post) / (vegetation pixels in pre) × 100, clamped to 0–100%. Forest area before/after are reported as percentages of total pixels, matching the manuscript’s “forest covered area” and “vegetation covered area” style metrics.
+- **Visualization and output:** Segmentation and change maps are color-coded (vegetation green, land brown, water blue; damaged areas red). Pre/post/change images are saved under `static/uploads` and shown in the assessment view with a legend-style presentation consistent with the manuscript’s figures.
 
 ### Data and access control
 
@@ -108,8 +116,9 @@ forest_assessment/
 │   ├── utils/           # Utilities (e.g. image_processing.py)
 │   └── __init__.py      # App factory and config
 ├── run.py               # Application entry point
+├── read_manuscript.py   # Extract text from manuscript.docx (requires python-docx)
 ├── requirements.txt     # Python dependencies
-├── recreate_db.py       # Optional DB recreation script
+├── recreate_db.py      # Optional DB recreation script
 ├── check_db.py          # Optional DB check script
 ├── debug_db.py          # Optional DB debug script
 └── README.md            # Project documentation
